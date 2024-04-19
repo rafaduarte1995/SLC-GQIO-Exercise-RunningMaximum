@@ -20,8 +20,6 @@
 		<PackageReference Include="Skyline.DataMiner.Dev.Automation" Version="10.4.0.1" />
 	</ItemGroup>
 	<ProjectExtensions>
-	    <VisualStudio>
-		    <UserProperties DisLinkedXmlFile="..\SLC-GQIO-Exercise-RunningTotal.xml" DisProjectType="automationScriptProject" DisLinkId="1" />
-        </VisualStudio>
+	    <VisualStudio><UserProperties DisLinkedXmlFile="..\SLC-GQIO-Exercise-RunningMax.xml" DisLinkId="1" DisProjectType="automationScriptProject" /></VisualStudio>
 	</ProjectExtensions>
 </Project>
