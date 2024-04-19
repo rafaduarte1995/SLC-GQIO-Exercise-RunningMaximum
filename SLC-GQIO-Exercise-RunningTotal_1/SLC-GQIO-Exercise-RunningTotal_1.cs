@@ -52,56 +52,45 @@ DATE		VERSION		AUTHOR			COMMENTS
 namespace SLC_GQIO_Exercise_RunningTotal_1
 {
 	using System;
-	using System.Collections.Generic;
-	using System.Globalization;
-	using System.Text;
-	using Skyline.DataMiner.Automation;
-	
-	/// <summary>
-	/// Represents a DataMiner Automation script.
-	/// </summary>
-	public class Script
+
+	using Skyline.DataMiner.Analytics.GenericInterface;
+
+	[GQIMetaData(Name = "Running Total")]
+	public class MyCustomOperator : IGQIColumnOperator, IGQIRowOperator, IGQIInputArguments
 	{
-		/// <summary>
-		/// The script entry point.
-		/// </summary>
-		/// <param name="engine">Link with SLAutomation process.</param>
-		public void Run(IEngine engine)
+		private readonly GQIColumnDropdownArgument _firstColumnArg = new GQIColumnDropdownArgument("First Column") { IsRequired = true, Types = new GQIColumnType[] { GQIColumnType.Double } };
+		private readonly GQIStringArgument _nameArg = new GQIStringArgument("Column Name") { IsRequired = true };
+
+		private GQIColumn _firstColumn;
+		private GQIDoubleColumn _newColumn;
+
+		private double totalCount = 0;
+
+		public GQIArgument[] GetInputArguments()
 		{
-			try
-			{
-				RunSafe(engine);
-			}
-			catch (ScriptAbortException)
-			{
-				// Catch normal abort exceptions (engine.ExitFail or engine.ExitSuccess)
-				throw; // Comment if it should be treated as a normal exit of the script.
-			}
-			catch (ScriptForceAbortException)
-			{
-				// Catch forced abort exceptions, caused via external maintenance messages.
-				throw;
-			}
-			catch (ScriptTimeoutException)
-			{
-				// Catch timeout exceptions for when a script has been running for too long.
-				throw;
-			}
-			catch (InteractiveUserDetachedException)
-			{
-				// Catch a user detaching from the interactive script by closing the window.
-				// Only applicable for interactive scripts, can be removed for non-interactive scripts.
-				throw;
-			}
-			catch (Exception e)
-			{
-				engine.ExitFail("Run|Something went wrong: " + e);
-			}
+			return new GQIArgument[] { _firstColumnArg, _nameArg };
 		}
 
-		private void RunSafe(IEngine engine)
+		public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
 		{
-			// TODO: Define code here
+			_firstColumn = args.GetArgumentValue(_firstColumnArg);
+			_newColumn = new GQIDoubleColumn(args.GetArgumentValue(_nameArg));
+
+			return new OnArgumentsProcessedOutputArgs();
+		}
+
+		public void HandleColumns(GQIEditableHeader header)
+		{
+			header.AddColumns(_newColumn);
+		}
+
+		public void HandleRow(GQIEditableRow row)
+		{
+			var firstValue = row.GetValue<double>(_firstColumn);
+			totalCount += firstValue;
+			var result = totalCount;
+			var resultRounded = Math.Round(result, 2);
+			row.SetValue(_newColumn, result, $"{resultRounded}");
 		}
 	}
 }
