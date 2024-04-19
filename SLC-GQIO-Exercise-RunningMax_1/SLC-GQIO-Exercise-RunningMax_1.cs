@@ -59,7 +59,6 @@ namespace SLC_GQIO_Exercise_RunningTotal_1
 	public class MyCustomOperator : IGQIColumnOperator, IGQIRowOperator, IGQIInputArguments
 	{
 		private readonly GQIColumnDropdownArgument _firstColumnArg = new GQIColumnDropdownArgument("First Column") { IsRequired = true, Types = new GQIColumnType[] { GQIColumnType.Double } };
-		private readonly GQIStringArgument _nameArg = new GQIStringArgument("Column Name") { IsRequired = true };
 
 		private GQIColumn _firstColumn;
 		private GQIDoubleColumn _newColumn;
@@ -68,13 +67,13 @@ namespace SLC_GQIO_Exercise_RunningTotal_1
 
 		public GQIArgument[] GetInputArguments()
 		{
-			return new GQIArgument[] { _firstColumnArg, _nameArg };
+			return new GQIArgument[] { _firstColumnArg };
 		}
 
 		public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
 		{
 			_firstColumn = args.GetArgumentValue(_firstColumnArg);
-			_newColumn = new GQIDoubleColumn(args.GetArgumentValue(_nameArg));
+			_newColumn = new GQIDoubleColumn("Running Total");
 
 			return new OnArgumentsProcessedOutputArgs();
 		}
