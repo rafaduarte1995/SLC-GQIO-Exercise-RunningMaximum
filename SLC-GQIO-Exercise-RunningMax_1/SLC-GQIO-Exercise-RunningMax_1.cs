@@ -56,12 +56,12 @@ namespace SLC_GQIO_Exercise_RunningTotal_1
 	using Skyline.DataMiner.Analytics.GenericInterface;
 
 	[GQIMetaData(Name = "Running Total")]
-	public class MyCustomOperator : IGQIColumnOperator, IGQIRowOperator, IGQIInputArguments
+	public class MyCustomOperator
 	{
-		private readonly GQIColumnDropdownArgument _firstColumnArg = new GQIColumnDropdownArgument("First Column") { IsRequired = true, Types = new GQIColumnType[] { GQIColumnType.Double } };
+		private readonly GQIColumnDropdownArgument _firstColumnArg = new GQIColumnDropdownArgument("First Column") { IsRequired = false, Types = new GQIColumnType[] { GQIColumnType.Double } };
 
 		private GQIColumn _firstColumn;
-		private GQIDoubleColumn _newColumn;
+		private GQIStringColumn _newColumn;
 
 		private double totalCount = 0;
 
@@ -73,7 +73,7 @@ namespace SLC_GQIO_Exercise_RunningTotal_1
 		public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
 		{
 			_firstColumn = args.GetArgumentValue(_firstColumnArg);
-			_newColumn = new GQIDoubleColumn("Running Total");
+			_newColumn = new GQIStringColumn("Running Total");
 
 			return new OnArgumentsProcessedOutputArgs();
 		}
@@ -85,8 +85,9 @@ namespace SLC_GQIO_Exercise_RunningTotal_1
 
 		public void HandleRow(GQIEditableRow row)
 		{
-			var firstValue = row.GetValue<double>(_firstColumn);
-			totalCount += firstValue;
+			var firstValue = row.GetValue<string>(_firstColumn);
+			var firstValueDouble = Convert.ToDouble(firstValue);
+			totalCount += firstValueDouble;
 			var result = totalCount;
 			var resultRounded = Math.Round(result, 2);
 			row.SetValue(_newColumn, result, $"{resultRounded}");
