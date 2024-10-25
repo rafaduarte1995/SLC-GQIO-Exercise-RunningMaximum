@@ -56,41 +56,58 @@ namespace SLC_GQIO_Exercise_RunningTotal_1
 	using Skyline.DataMiner.Analytics.GenericInterface;
 
 	[GQIMetaData(Name = "Running Total")]
-	public class MyCustomOperator
+	public class MyCustomOperator : IGQIColumnOperator, IGQIRowOperator, IGQIInputArguments
 	{
-		private readonly GQIColumnDropdownArgument _firstColumnArg = new GQIColumnDropdownArgument("First Column") { IsRequired = false, Types = new GQIColumnType[] { GQIColumnType.Double } };
+		private readonly GQIColumnDropdownArgument _firstColumnArg = new GQIColumnDropdownArgument("First Column") { IsRequired = true, Types = new GQIColumnType[] { GQIColumnType.Double } };
+		private readonly GQIStringArgument _columnNameArg = new GQIStringArgument("RunningMax Column Name") { IsRequired = true };
 
 		private GQIColumn _firstColumn;
-		private GQIStringColumn _newColumn;
+		private string _columnName;
+		private GQIDoubleColumn _newColumnTotalCount;
+		private GQIDoubleColumn _newColumnRunningMax;
 
 		private double totalCount = 0;
 
+		private double runningMax = 0;
+
 		public GQIArgument[] GetInputArguments()
 		{
-			return new GQIArgument[] { _firstColumnArg };
+			return new GQIArgument[] { _firstColumnArg, _columnNameArg };
 		}
 
 		public OnArgumentsProcessedOutputArgs OnArgumentsProcessed(OnArgumentsProcessedInputArgs args)
 		{
 			_firstColumn = args.GetArgumentValue(_firstColumnArg);
-			_newColumn = new GQIStringColumn("Running Total");
+			_columnName = args.GetArgumentValue(_columnNameArg);
+			_newColumnTotalCount = new GQIDoubleColumn("Running Total");
+			_newColumnRunningMax = new GQIDoubleColumn(_columnName);
 
 			return new OnArgumentsProcessedOutputArgs();
 		}
 
 		public void HandleColumns(GQIEditableHeader header)
 		{
-			header.AddColumns(_newColumn);
+			header.AddColumns(_newColumnTotalCount, _newColumnRunningMax);
 		}
 
 		public void HandleRow(GQIEditableRow row)
 		{
-			var firstValue = row.GetValue<string>(_firstColumn);
-			var firstValueDouble = Convert.ToDouble(firstValue);
+			var firstValueDouble = row.GetValue<double>(_firstColumn);
 			totalCount += firstValueDouble;
-			var result = totalCount;
-			var resultRounded = Math.Round(result, 2);
-			row.SetValue(_newColumn, result, $"{resultRounded}");
+			
+			// Running Max
+			if(firstValueDouble > runningMax)
+			{
+				runningMax = firstValueDouble;
+			}
+
+			var totalCountResult = totalCount;
+			var runningMaxResult = runningMax;
+			var totalCountRounded = Math.Round(totalCountResult, 2);
+			var runningMaxRonded	= Math.Round(runningMaxResult, 2);
+
+			row.SetValue(_newColumnTotalCount, totalCountResult, $"{totalCountRounded}");
+			row.SetValue(_newColumnRunningMax, runningMaxResult, $"{runningMaxRonded}");
 		}
 	}
 }
